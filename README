@@ -1,0 +1,377 @@
+# AltasRoutex-行程智能规划引擎
+
+# 企业级软件开发计划书
+
+## 一.项目背景和行业痛点
+### 1.1 行业现状：旅游决策的三座大山
+在当前的在线旅游市场，用户面临着一个看似矛盾的现象：信息越丰富决策越困难，以一次东京五日游的规划为例，用户需要在海量信息中做出上百次决策：
+
+决策类型	信息量级	决策复杂度
+目的地选择	东京2000+个景点	哪个值得去？
+路线规划	景点间组合10! = 362万种	怎么走最顺？
+时间安排	5天 × 每天10小时 = 50个时段	怎么分配时间？
+餐饮选择	5000+家餐厅	在哪吃？吃什么？
+住宿位置	300+个酒店区域	住哪最方便？
+预算分配	机票+酒店+门票+餐饮	怎么花最值？
+
+用户的真实困境：
+信息过载：小红书攻略看100篇，越看越焦虑
+决策瘫痪：选择太多，不知道哪个适合自己
+时间成本：规划一次旅行需要从各处收集资料，非常耗费精力
+执行落差：纸上规划很完美，实际执行处处碰壁
+
+### 1.2 现有方案的局限性
+市面上都有或多或少的解决方案，但是没有端到端的智能规划，找靠谱的1对1规划还要依靠旅行社。
+
+市面缺点如下：
+
+攻略社区	小红书、马蜂窝	信息碎片化，无法个性化，需要自己拼凑
+行程助手	携程行程单	只做记录不做规划，仍需手动输入
+AI问答	ChatGPT	输出是文本描述，没有可执行的行程表
+旅行规划App	Wanderlog	国外产品，不支持亚洲POI数据，无实时预订
+
+核心缺失：没有一个系统同时能做到个性化推荐+智能优化+一键预订的闭环
+
+### 1.3 业务痛点
+从trip.com这样的OTA平台来看，也存在明显的业务痛点：
+痛点一：用户决策成本高，转化率低
+用户搜索了10次、看了20个酒店，最后可能因为“选择太多”而放弃下单，据统计，用户在预订前平均需要7-10次访问，决策周期长达3-5天
+
+痛点二：交叉销售能力弱
+用户订了机票，但酒店和门票在其他平台预订，单次行程的客单价（ARPU）远低于用户实际消费能力
+
+痛点三：用户粘性不足
+用户只在预订时使用平台，用完即走，缺乏“规划-预订-出行-分享”的全链路粘性
+
+## 二.AltasRoutex解决方案
+### 2.1 核心理念：从用户找信息到信息找用户
+AltasRoutex不是简单的行程记录工具，而是一个AI驱动的智能规划引擎。用户只需要输入目的地，天数，预算，偏好四个维度，系统就可以在5秒内输入一份完整可执行的行程方案。
+
+### 2.2 产品功能矩阵
+功能模块	核心能力	用户价值
+智能解析	自然语言理解用户意图	说人话就能规划，无需复杂操作
+个性化推荐	基于偏好、历史行为、相似用户的协同过滤	推荐“懂我”的景点和餐厅
+路径优化	遗传算法求解带约束的TSP问题	不走回头路，省时省力
+时间调度	约束传播满足营业时间、用餐时间	安排合理，不赶场不浪费
+预算管理	实时计算总花费，支持预算约束	花得明白，不超支
+一键预订	对接机票、酒店、门票API	从规划到预订，一气呵成
+实时调整	支持行程动态修改，增量重算	计划赶不上变化，随时调整
+
+### 2.3 核心能力：三个前所未有
+1.前所未有的规划速度：
+用户规划时间：从8-12小时到5秒，效率提升了5000倍以上
+
+2.前所未有的方案质量
+传统攻略：千人一面，不一定适合你
+AltasRoutex：基于用户画像的千人千面，满意度提升40%
+
+3.前所未有的闭环体验：
+传统工具：规划->再到各个平台预定->耗时耗力
+AltasRoutex：规划->一键预定->生成行程单->无缝衔接
+
+## 三.项目核心贡献
+### 3.1.对用户的价值：
+价值维度	具体体现	量化指标
+省时	8小时规划 → 5秒生成	时间成本降低 99.9%
+省心	无需研究攻略，AI全搞定	决策焦虑指数下降 60%
+省钱	智能预算优化，推荐性价比方案	人均旅行成本降低 15%
+体验	行程更合理，不赶路不踩坑	用户满意度 >85%
+
+### 3.2.对平台的价值：
+价值维度	具体体现	量化指标
+转化率提升	规划即预订，缩短决策路径	预计提升 20-30%
+客单价提升	一站式规划促进交叉销售	预计提升 30-50%
+用户粘性	规划阶段锁定用户，形成使用习惯	DAU提升 50%
+数据资产	沉淀用户行程数据，反哺推荐系统	个性化能力持续增强
+差异化竞争	竞品无同类产品，形成技术壁垒	核心竞争力
+
+### 3.3.技术贡献：行业首创的工程实践：
+技术突破	行业现状	AtlasRoutex方案	技术领先性
+多约束组合优化	大多数系统只做路径规划，不考虑时间/预算/体力约束	集成约束传播与启发式搜索，同时满足5类以上约束	行业首创
+分层求解架构	单一算法无法平衡质量与性能	城市→区域→景点三层求解，性能提升10倍	架构创新
+实时增量调整	修改行程需要全量重算	只重算受影响部分，响应时间从5秒降至0.5秒	工程突破
+知识图谱+缓存	POI数据分散，查询慢	预计算热门POI距离矩阵，多级缓存命中率>90%	性能极致
+混合算法融合	只用单一启发式算法	遗传+蚁群+动态规划并行，取最优解    算法创新
+
+### 3.4 社会价值
+降低旅行门槛：让不擅长规划的人也能轻松出游
+提升旅行质量：让每次旅行都是最优体验
+促进旅游消费：带动旅游产业链发展
+技术普惠：AI能力下沉到普通用户的日常场景
+
+## 四.项目架构：
+AtlasRouteX/
+├── README.md                           # 项目说明文档
+├── go.mod                              # Go模块依赖
+├── go.sum                              # 依赖校验
+├── Makefile                            # 构建脚本
+├── .env.example                        # 环境变量模板
+├── .gitignore                          # Git忽略配置
+├── .golangci.yml                       # 代码规范检查
+│
+├── cmd/                                # 可执行程序入口
+│   ├── api/                            # HTTP API服务
+│   │   ├── main.go                     # 服务启动入口
+│   │   ├── wire.go                     # 依赖注入配置
+│   │   └── wire_gen.go                 # 自动生成的依赖注入代码
+│   ├── worker/                         # 异步任务Worker
+│   │   ├── main.go                     # Worker启动入口
+│   │   └── handlers/                   # 任务处理器
+│   │       ├── precompute_handler.go   # 预计算任务
+│   │       └── feedback_handler.go     # 反馈处理任务
+│   └── migration/                      # 数据库迁移工具
+│       ├── main.go                     # 迁移工具入口
+│       └── scripts/                    # 迁移脚本
+│           ├── 001_init_schema.sql     # 初始化表结构
+│           ├── 002_add_indexes.sql     # 添加索引
+│           └── 003_seed_data.sql       # 种子数据
+│
+├── internal/                           # 私有代码，不对外暴露
+│   ├── domain/                         # 领域模型层（DDD）
+│   │   ├── entity/                     # 实体定义
+│   │   │   ├── poi.go                  # POI实体
+│   │   │   ├── itinerary.go            # 行程实体
+│   │   │   ├── user.go                 # 用户实体
+│   │   │   └── constraint.go           # 约束实体
+│   │   ├── valueobject/                # 值对象
+│   │   │   ├── location.go             # 地理位置值对象
+│   │   │   ├── timeslot.go             # 时间段值对象
+│   │   │   └── budget.go               # 预算值对象
+│   │   └── repository/                 # 仓储接口定义
+│   │       ├── poi_repository.go       # POI仓储接口
+│   │       ├── itinerary_repository.go # 行程仓储接口
+│   │       └── cache_repository.go     # 缓存仓储接口
+│   │
+│   ├── application/                    # 应用服务层（用例）
+│   │   ├── planner/                    # 规划服务
+│   │   │   ├── plan_usecase.go         # 行程规划用例
+│   │   │   ├── adjust_usecase.go       # 行程调整用例
+│   │   │   └── dto.go                  # 数据传输对象
+│   │   ├── recommender/                # 推荐服务
+│   │   │   ├── recommend_usecase.go    # POI推荐用例
+│   │   │   └── strategy.go             # 推荐策略
+│   │   └── feedback/                   # 反馈服务
+│   │       ├── feedback_usecase.go     # 用户反馈用例
+│   │       └── collector.go            # 反馈收集器
+│   │
+│   ├── infrastructure/                 # 基础设施层
+│   │   ├── persistence/                # 持久化实现
+│   │   │   ├── postgres/               # PostgreSQL实现
+│   │   │   │   ├── db.go               # 数据库连接
+│   │   │   │   ├── poi_repo_impl.go    # POI仓储实现
+│   │   │   │   └── itinerary_repo_impl.go
+│   │   │   ├── redis/                  # Redis实现
+│   │   │   │   ├── client.go           # Redis客户端
+│   │   │   │   └── cache_repo_impl.go  # 缓存实现
+│   │   │   └── neo4j/                  # Neo4j实现
+│   │   │       ├── driver.go           # Neo4j驱动
+│   │   │       └── graph_repo_impl.go  # 图查询实现
+│   │   ├── external/                   # 外部服务调用
+│   │   │   ├── mapapi/                 # 地图API
+│   │   │   │   ├── client.go           # 地图API客户端
+│   │   │   │   └── distance.go         # 距离计算
+│   │   │   ├── booking/                # 预订API
+│   │   │   │   ├── client.go           # 预订API客户端
+│   │   │   │   └── hotel.go            # 酒店预订
+│   │   │   └── payment/                # 支付API
+│   │   │       └── client.go           # 支付客户端
+│   │   └── mq/                         # 消息队列
+│   │       ├── producer.go             # 消息生产者
+│   │       ├── consumer.go             # 消息消费者
+│   │       └── topics.go               # Topic定义
+│   │
+│   ├── core/                           # 核心业务逻辑
+│   │   ├── solver/                     # 算法求解器
+│   │   │   ├── solver.go               # 求解器接口
+│   │   │   ├── genetic/                # 遗传算法
+│   │   │   │   ├── chromosome.go       # 染色体定义
+│   │   │   │   ├── crossover.go        # 交叉算子
+│   │   │   │   ├── mutation.go         # 变异算子
+│   │   │   │   ├── selection.go        # 选择算子
+│   │   │   │   └── fitness.go          # 适应度函数
+│   │   │   ├── antcolony/              # 蚁群算法
+│   │   │   │   ├── colony.go           # 蚁群实现
+│   │   │   │   ├── pheromone.go        # 信息素管理
+│   │   │   │   └── heuristic.go        # 启发式信息
+│   │   │   ├── constraint/             # 约束求解
+│   │   │   │   ├── propagator.go       # 约束传播
+│   │   │   │   ├── ac3.go              # AC-3算法
+│   │   │   │   └── validator.go        # 约束验证
+│   │   │   └── hybrid/                 # 混合求解器
+│   │   │       ├── orchestrator.go     # 求解器编排
+│   │   │       └── ensemble.go         # 集成策略
+│   │   ├── graph/                      # 知识图谱
+│   │   │   ├── graph.go                # 图谱接口
+│   │   │   ├── builder.go              # 图谱构建器
+│   │   │   ├── query.go                # 图谱查询
+│   │   │   └── index/                  # 空间索引
+│   │   │       ├── geohash.go          # Geohash索引
+│   │   │       └── rtree.go            # R树索引
+│   │   ├── planner/                    # 规划引擎
+│   │   │   ├── engine.go               # 规划引擎主入口
+│   │   │   ├── hierarchical.go         # 分层规划器
+│   │   │   ├── incremental.go          # 增量规划器
+│   │   │   └── pipeline.go             # 规划流水线
+│   │   └── optimization/               # 优化模块
+│   │       ├── objective.go            # 目标函数
+│   │       ├── weight.go               # 权重调优
+│   │       └── pareto.go               # Pareto前沿
+│   │
+│   ├── api/                            # API接口层
+│   │   ├── handler/                    # HTTP处理器
+│   │   │   ├── plan_handler.go         # 规划接口
+│   │   │   ├── poi_handler.go          # POI接口
+│   │   │   ├── user_handler.go         # 用户接口
+│   │   │   └── middleware/             # 中间件
+│   │   │       ├── auth.go             # 认证中间件
+│   │   │       ├── ratelimit.go        # 限流中间件
+│   │   │       ├── logger.go           # 日志中间件
+│   │   │       └── recovery.go         # 恢复中间件
+│   │   ├── grpc/                       # gRPC服务
+│   │   │   ├── server.go               # gRPC服务器
+│   │   │   ├── plan_service.go         # 规划服务实现
+│   │   │   └── interceptor/            # 拦截器
+│   │   │       ├── auth.go             # 认证拦截器
+│   │   │       └── logging.go          # 日志拦截器
+│   │   └── dto/                        # 数据传输对象
+│   │       ├── request.go              # 请求DTO
+│   │       ├── response.go             # 响应DTO
+│   │       └── converter.go            # DTO转换器
+│   │
+│   └── bootstrap/                      # 启动引导
+│       ├── app.go                      # 应用初始化
+│       ├── config.go                   # 配置加载
+│       ├── logger.go                   # 日志初始化
+│       ├── database.go                 # 数据库初始化
+│       └── server.go                   # 服务器启动
+│
+├── pkg/                                # 公共库，可对外暴露
+│   ├── errors/                         # 错误定义
+│   │   ├── errors.go                   # 自定义错误
+│   │   └── codes.go                    # 错误码定义
+│   ├── logger/                         # 日志封装
+│   │   ├── logger.go                   # 日志接口
+│   │   └── zap.go                      # Zap实现
+│   ├── metrics/                        # 监控指标
+│   │   ├── prometheus.go               # Prometheus指标
+│   │   └── recorder.go                 # 指标记录器
+│   ├── utils/                          # 工具函数
+│   │   ├── hash.go                     # 哈希工具
+│   │   ├── time.go                     # 时间工具
+│   │   ├── math.go                     # 数学工具
+│   │   └── validator.go                # 校验工具
+│   ├── cache/                          # 缓存抽象
+│   │   ├── cache.go                    # 缓存接口
+│   │   ├── memory.go                   # 内存实现
+│   │   └── redis.go                    # Redis实现
+│   └── queue/                          # 队列抽象
+│       ├── queue.go                    # 队列接口
+│       └── kafka.go                    # Kafka实现
+│
+├── api/                                # API定义文件
+│   ├── openapi/                        # OpenAPI规范
+│   │   ├── plan.yaml                   # 规划接口定义
+│   │   ├── poi.yaml                    # POI接口定义
+│   │   └── swagger.yaml                # Swagger聚合
+│   └── proto/                          # gRPC Proto定义
+│       ├── plan.proto                  # 规划服务Proto
+│       ├── poi.proto                   # POI服务Proto
+│       └── common.proto                # 公共消息定义
+│
+├── configs/                            # 配置文件
+│   ├── config.yaml                     # 主配置
+│   ├── config.dev.yaml                 # 开发环境配置
+│   ├── config.staging.yaml             # 预发布环境配置
+│   ├── config.prod.yaml                # 生产环境配置
+│   └── solver/                         # 求解器配置
+│       ├── genetic.yaml                # 遗传算法参数
+│       ├── antcolony.yaml              # 蚁群算法参数
+│       └── constraints.yaml            # 约束配置
+│
+├── scripts/                            # 脚本工具
+│   ├── build.sh                        # 构建脚本
+│   ├── test.sh                         # 测试脚本
+│   ├── lint.sh                         # 代码检查脚本
+│   ├── run.sh                          # 运行脚本
+│   ├── docker/                         # Docker相关
+│   │   ├── Dockerfile                  # Docker镜像
+│   │   ├── docker-compose.dev.yml      # 开发环境编排
+│   │   └── docker-compose.prod.yml     # 生产环境编排
+│   └── data/                           # 数据脚本
+│       ├── import_poi.py               # POI导入脚本
+│       ├── precompute_distance.py      # 距离预计算脚本
+│       └── seed_data.sql               # 测试数据
+│
+├── tests/                              # 测试代码
+│   ├── unit/                           # 单元测试
+│   │   ├── solver/                     # 求解器测试
+│   │   │   ├── genetic_test.go
+│   │   │   └── constraint_test.go
+│   │   ├── planner/                    # 规划器测试
+│   │   └── domain/                     # 领域模型测试
+│   ├── integration/                    # 集成测试
+│   │   ├── api_test.go                 # API集成测试
+│   │   ├── database_test.go            # 数据库集成测试
+│   │   └── cache_test.go               # 缓存集成测试
+│   ├── benchmark/                      # 性能测试
+│   │   ├── solver_bench_test.go        # 求解器性能测试
+│   │   ├── planner_bench_test.go       # 规划器性能测试
+│   │   └── results/                    # 测试结果
+│   │       └── benchmark_report.txt
+│   ├── mock/                           # Mock对象
+│   │   ├── repository_mock.go          # 仓储Mock
+│   │   ├── external_mock.go            # 外部服务Mock
+│   │   └── cache_mock.go               # 缓存Mock
+│   └── fixtures/                       # 测试数据
+│       ├── pois.json                   # POI测试数据
+│       ├── users.json                  # 用户测试数据
+│       └── itineraries.json            # 行程测试数据
+│
+├── docs/                               # 文档
+│   ├── architecture/                   # 架构文档
+│   │   ├── architecture.md             # 整体架构
+│   │   ├── data-flow.md                # 数据流设计
+│   │   └── deployment.md               # 部署架构
+│   ├── api/                            # API文档
+│   │   ├── http-api.md                 # HTTP API文档
+│   │   └── grpc-api.md                 # gRPC API文档
+│   ├── algorithm/                      # 算法文档
+│   │   ├── genetic-algorithm.md        # 遗传算法说明
+│   │   ├── constraint-propagation.md   # 约束传播说明
+│   │   └── optimization.md             # 优化策略说明
+│   ├── development/                    # 开发文档
+│   │   ├── setup.md                    # 环境搭建
+│   │   ├── coding-style.md             # 编码规范
+│   │   └── testing.md                  # 测试指南
+│   └── operations/                     # 运维文档
+│       ├── monitoring.md               # 监控配置
+│       ├── troubleshooting.md          # 故障排查
+│       └── scaling.md                  # 扩容指南
+│
+├── deployments/                        # 部署配置
+│   ├── kubernetes/                     # K8s部署
+│   │   ├── namespace.yaml
+│   │   ├── configmap.yaml
+│   │   ├── secret.yaml
+│   │   ├── deployment.yaml
+│   │   ├── service.yaml
+│   │   ├── ingress.yaml
+│   │   └── hpa.yaml                    # 水平自动伸缩
+│   ├── helm/                           # Helm Chart
+│   │   └── atlas-routex/
+│   │       ├── Chart.yaml
+│   │       ├── values.yaml
+│   │       └── templates/
+│   └── terraform/                      # Terraform配置
+│       └── aws/
+│           ├── main.tf
+│           ├── variables.tf
+│           └── outputs.tf
+│
+└── .github/                            # GitHub配置
+    ├── workflows/                      # GitHub Actions
+    │   ├── ci.yml                      # 持续集成
+    │   ├── cd.yml                      # 持续部署
+    │   └── benchmark.yml               # 性能测试
+    ├── CODEOWNERS                      # 代码所有者
+    └── PULL_REQUEST_TEMPLATE.md        # PR模板
