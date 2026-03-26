@@ -129,18 +129,18 @@ AtlasRouteX/
 ├── internal/                           # 私有代码，不对外暴露
 │   ├── domain/                         # 领域模型层（DDD）
 │   │   ├── entity/                     # 实体定义
-│   │   │   ├── poi.go                  # POI实体
-│   │   │   ├── itinerary.go            # 行程实体
-│   │   │   ├── user.go                 # 用户实体
-│   │   │   └── constraint.go           # 约束实体
+│   │   │   ├── poi.go                  # POI实体（完成）
+│   │   │   ├── itinerary.go            # 行程实体（完成）
+│   │   │   ├── user.go                 # 用户实体（完成）
+│   │   │   └── constraint.go           # 约束实体（完成）
 │   │   ├── valueobject/                # 值对象
-│   │   │   ├── location.go             # 地理位置值对象
-│   │   │   ├── timeslot.go             # 时间段值对象
-│   │   │   └── budget.go               # 预算值对象
+│   │   │   ├── location.go             # 地理位置值对象（完成）
+│   │   │   ├── timeslot.go             # 时间段值对象（完成）
+│   │   │   └── budget.go               # 预算值对象（完成）
 │   │   └── repository/                 # 仓储接口定义
-│   │       ├── poi_repository.go       # POI仓储接口
-│   │       ├── itinerary_repository.go # 行程仓储接口
-│   │       └── cache_repository.go     # 缓存仓储接口
+│   │       ├── poi_repository.go       # POI仓储接口（完成）
+│   │       ├── itinerary_repository.go # 行程仓储接口（完成）
+│   │       └── cache_repository.go     # 缓存仓储接口（完成）
 │   │
 │   ├── application/                    # 应用服务层（用例）
 │   │   ├── planner/                    # 规划服务
@@ -157,8 +157,8 @@ AtlasRouteX/
 │   ├── infrastructure/                 # 基础设施层
 │   │   ├── persistence/                # 持久化实现
 │   │   │   ├── postgres/               # PostgreSQL实现
-│   │   │   │   ├── db.go               # 数据库连接
-│   │   │   │   ├── poi_repo_impl.go    # POI仓储实现
+│   │   │   │   ├── db.go               # 数据库连接（完成）
+│   │   │   │   ├── poi_repo_impl.go    # POI仓储实现（完成）
 │   │   │   │   └── itinerary_repo_impl.go
 │   │   │   ├── redis/                  # Redis实现
 │   │   │   │   ├── client.go           # Redis客户端
