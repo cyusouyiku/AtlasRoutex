@@ -122,9 +122,9 @@ AtlasRouteX/
 │   └── migration/                      # 数据库迁移工具
 │       ├── main.go                     # 迁移工具入口
 │       └── scripts/                    # 迁移脚本
-│           ├── 001_init_schema.sql     # 初始化表结构
-│           ├── 002_add_indexes.sql     # 添加索引
-│           └── 003_seed_data.sql       # 种子数据
+│           ├── 001_init_schema.sql     # 初始化表结构（完成）
+│           ├── 002_add_indexes.sql     # 添加索引（完成）
+│           └── 003_seed_data.sql       # 种子数据（完成）
 │
 ├── internal/                           # 私有代码，不对外暴露
 │   ├── domain/                         # 领域模型层（DDD）
@@ -144,15 +144,15 @@ AtlasRouteX/
 │   │
 │   ├── application/                    # 应用服务层（用例）
 │   │   ├── planner/                    # 规划服务
-│   │   │   ├── plan_usecase.go         # 行程规划用例
-│   │   │   ├── adjust_usecase.go       # 行程调整用例
-│   │   │   └── dto.go                  # 数据传输对象
+│   │   │   ├── plan_usecase.go         # 行程规划用例（完成）
+│   │   │   ├── adjust_usecase.go       # 行程调整用例（完成）
+│   │   │   └── dto.go                  # 数据传输对象（完成）
 │   │   ├── recommender/                # 推荐服务
-│   │   │   ├── recommend_usecase.go    # POI推荐用例
-│   │   │   └── strategy.go             # 推荐策略
+│   │   │   ├── recommend_usecase.go    # POI推荐用例（完成）
+│   │   │   └── strategy.go             # 推荐策略（完成）
 │   │   └── feedback/                   # 反馈服务
-│   │       ├── feedback_usecase.go     # 用户反馈用例
-│   │       └── collector.go            # 反馈收集器
+│   │       ├── feedback_usecase.go     # 用户反馈用例（完成）
+│   │       └── collector.go            # 反馈收集器（完成）
 │   │
 │   ├── infrastructure/                 # 基础设施层
 │   │   ├── persistence/                # 持久化实现
