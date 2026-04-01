@@ -162,7 +162,7 @@ AtlasRouteX/
 │   │   │   │   └── itinerary_repo_impl.go
 │   │   │   ├── redis/                  # Redis实现
 │   │   │   │   ├── client.go           # Redis客户端（完成）
-│   │   │   │   └── cache_repo_impl.go  # 缓存实现
+│   │   │   │   └── cache_repo_impl.go  # 缓存实现（完成）
 │   │   │   └── neo4j/                  # Neo4j实现
 │   │   │       ├── driver.go           # Neo4j驱动
 │   │   │       └── graph_repo_impl.go  # 图查询实现
