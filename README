@@ -182,7 +182,7 @@ AtlasRouteX/
 │   │
 │   ├── core/                           # 核心业务逻辑
 │   │   ├── solver/                     # 算法求解器
-│   │   │   ├── solver.go               # 求解器接口
+│   │   │   ├── solver.go               # 求解器接口(4.2开始计划开发，现在在整理之前的开发部分)
 │   │   │   ├── genetic/                # 遗传算法
 │   │   │   │   ├── chromosome.go       # 染色体定义
 │   │   │   │   ├── crossover.go        # 交叉算子
