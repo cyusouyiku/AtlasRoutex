@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	
+
+	"github.com/google/uuid"
+
 	"atlas-routex/internal/domain/entity"
 	"atlas-routex/internal/domain/repository"
 )
@@ -32,11 +34,11 @@ func (r *ItineraryRepositoryImpl) FindByID(ctx context.Context, id string) (*ent
 		FROM itineraries
 		WHERE id = $1 AND deleted_at IS NULL
 	`
-	
+
 	var itinerary entity.Itinerary
 	var budgetJSON, statisticsJSON, constraintsJSON []byte
 	var publishedAt sql.NullTime
-	
+
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&itinerary.ID,
 		&itinerary.UserID,
@@ -53,14 +55,14 @@ func (r *ItineraryRepositoryImpl) FindByID(ctx context.Context, id string) (*ent
 		&itinerary.UpdatedAt,
 		&publishedAt,
 	)
-	
+
 	if err == sql.ErrNoRows {
 		return nil, entity.ErrItineraryNotFound
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to find itinerary by id: %w", err)
 	}
-	
+
 	// 解析 JSON 字段
 	if err := json.Unmarshal(budgetJSON, &itinerary.Budget); err != nil {
 		return nil, fmt.Errorf("failed to parse budget: %w", err)
@@ -71,18 +73,18 @@ func (r *ItineraryRepositoryImpl) FindByID(ctx context.Context, id string) (*ent
 	if err := json.Unmarshal(constraintsJSON, &itinerary.Constraints); err != nil {
 		return nil, fmt.Errorf("failed to parse constraints: %w", err)
 	}
-	
+
 	if publishedAt.Valid {
 		itinerary.PublishedAt = &publishedAt.Time
 	}
-	
+
 	// 查询每天的行程详情
 	days, err := r.fetchDays(ctx, itinerary.ID)
 	if err != nil {
 		return nil, err
 	}
 	itinerary.Days = days
-	
+
 	return &itinerary, nil
 }
 
@@ -95,13 +97,13 @@ func (r *ItineraryRepositoryImpl) FindByUserID(ctx context.Context, userID strin
 		WHERE user_id = $1 AND deleted_at IS NULL
 		ORDER BY created_at DESC
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find itineraries by user id: %w", err)
 	}
 	defer rows.Close()
-	
+
 	return r.scanItineraries(rows)
 }
 
@@ -115,13 +117,13 @@ func (r *ItineraryRepositoryImpl) FindByName(ctx context.Context, name string) (
 		ORDER BY created_at DESC
 		LIMIT 50
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, "%"+name+"%")
 	if err != nil {
 		return nil, fmt.Errorf("failed to find itineraries by name: %w", err)
 	}
 	defer rows.Close()
-	
+
 	return r.scanItineraries(rows)
 }
 
@@ -132,12 +134,12 @@ func (r *ItineraryRepositoryImpl) Save(ctx context.Context, itinerary *entity.It
 	if err != nil && err != entity.ErrItineraryNotFound {
 		return err
 	}
-	
+
 	if existing != nil {
 		// 存在则更新
 		return r.Update(ctx, itinerary)
 	}
-	
+
 	// 不存在则插入
 	return r.insert(ctx, itinerary)
 }
@@ -148,31 +150,31 @@ func (r *ItineraryRepositoryImpl) insert(ctx context.Context, itinerary *entity.
 	if err != nil {
 		return fmt.Errorf("failed to marshal budget: %w", err)
 	}
-	
+
 	statisticsJSON, err := json.Marshal(itinerary.Statistics)
 	if err != nil {
 		return fmt.Errorf("failed to marshal statistics: %w", err)
 	}
-	
+
 	constraintsJSON, err := json.Marshal(itinerary.Constraints)
 	if err != nil {
 		return fmt.Errorf("failed to marshal constraints: %w", err)
 	}
-	
+
 	var publishedAt interface{}
 	if itinerary.PublishedAt != nil {
 		publishedAt = *itinerary.PublishedAt
 	} else {
 		publishedAt = nil
 	}
-	
+
 	query := `
 		INSERT INTO itineraries (
 			id, user_id, name, description, status, start_date, end_date, day_count,
 			budget, statistics, constraints, created_at, updated_at, published_at
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 	`
-	
+
 	_, err = r.db.ExecContext(ctx, query,
 		itinerary.ID,
 		itinerary.UserID,
@@ -189,16 +191,16 @@ func (r *ItineraryRepositoryImpl) insert(ctx context.Context, itinerary *entity.
 		itinerary.UpdatedAt,
 		publishedAt,
 	)
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to insert itinerary: %w", err)
 	}
-	
+
 	// 保存每天的行程详情
 	if err := r.saveDays(ctx, itinerary.ID, itinerary.Days); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -208,24 +210,24 @@ func (r *ItineraryRepositoryImpl) Update(ctx context.Context, itinerary *entity.
 	if err != nil {
 		return fmt.Errorf("failed to marshal budget: %w", err)
 	}
-	
+
 	statisticsJSON, err := json.Marshal(itinerary.Statistics)
 	if err != nil {
 		return fmt.Errorf("failed to marshal statistics: %w", err)
 	}
-	
+
 	constraintsJSON, err := json.Marshal(itinerary.Constraints)
 	if err != nil {
 		return fmt.Errorf("failed to marshal constraints: %w", err)
 	}
-	
+
 	var publishedAt interface{}
 	if itinerary.PublishedAt != nil {
 		publishedAt = *itinerary.PublishedAt
 	} else {
 		publishedAt = nil
 	}
-	
+
 	query := `
 		UPDATE itineraries SET
 			user_id = $2,
@@ -242,7 +244,7 @@ func (r *ItineraryRepositoryImpl) Update(ctx context.Context, itinerary *entity.
 			published_at = $13
 		WHERE id = $1 AND deleted_at IS NULL
 	`
-	
+
 	result, err := r.db.ExecContext(ctx, query,
 		itinerary.ID,
 		itinerary.UserID,
@@ -258,11 +260,11 @@ func (r *ItineraryRepositoryImpl) Update(ctx context.Context, itinerary *entity.
 		time.Now(),
 		publishedAt,
 	)
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to update itinerary: %w", err)
 	}
-	
+
 	rows, err := result.RowsAffected()
 	if err != nil {
 		return err
@@ -270,7 +272,7 @@ func (r *ItineraryRepositoryImpl) Update(ctx context.Context, itinerary *entity.
 	if rows == 0 {
 		return entity.ErrItineraryNotFound
 	}
-	
+
 	// 先删除旧的 daily 记录，再插入新的
 	if err := r.deleteDays(ctx, itinerary.ID); err != nil {
 		return err
@@ -278,19 +280,19 @@ func (r *ItineraryRepositoryImpl) Update(ctx context.Context, itinerary *entity.
 	if err := r.saveDays(ctx, itinerary.ID, itinerary.Days); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
 // Delete 软删除行程
 func (r *ItineraryRepositoryImpl) Delete(ctx context.Context, id string) error {
 	query := `UPDATE itineraries SET deleted_at = $2 WHERE id = $1 AND deleted_at IS NULL`
-	
+
 	result, err := r.db.ExecContext(ctx, query, id, time.Now())
 	if err != nil {
 		return fmt.Errorf("failed to delete itinerary: %w", err)
 	}
-	
+
 	rows, err := result.RowsAffected()
 	if err != nil {
 		return err
@@ -298,7 +300,7 @@ func (r *ItineraryRepositoryImpl) Delete(ctx context.Context, id string) error {
 	if rows == 0 {
 		return entity.ErrItineraryNotFound
 	}
-	
+
 	return nil
 }
 
@@ -308,14 +310,14 @@ func (r *ItineraryRepositoryImpl) HardDelete(ctx context.Context, id string) err
 	if err := r.deleteDays(ctx, id); err != nil {
 		return err
 	}
-	
+
 	query := `DELETE FROM itineraries WHERE id = $1`
-	
+
 	result, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("failed to hard delete itinerary: %w", err)
 	}
-	
+
 	rows, err := result.RowsAffected()
 	if err != nil {
 		return err
@@ -323,7 +325,7 @@ func (r *ItineraryRepositoryImpl) HardDelete(ctx context.Context, id string) err
 	if rows == 0 {
 		return entity.ErrItineraryNotFound
 	}
-	
+
 	return nil
 }
 
@@ -338,13 +340,13 @@ func (r *ItineraryRepositoryImpl) FindByStatus(ctx context.Context, status entit
 		WHERE status = $1 AND deleted_at IS NULL
 		ORDER BY created_at DESC
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, status)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find itineraries by status: %w", err)
 	}
 	defer rows.Close()
-	
+
 	return r.scanItineraries(rows)
 }
 
@@ -357,13 +359,13 @@ func (r *ItineraryRepositoryImpl) FindByUserIDAndStatus(ctx context.Context, use
 		WHERE user_id = $1 AND status = $2 AND deleted_at IS NULL
 		ORDER BY created_at DESC
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, userID, status)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find itineraries by user and status: %w", err)
 	}
 	defer rows.Close()
-	
+
 	return r.scanItineraries(rows)
 }
 
@@ -376,13 +378,13 @@ func (r *ItineraryRepositoryImpl) FindByDateRange(ctx context.Context, startDate
 		WHERE start_date >= $1 AND end_date <= $2 AND deleted_at IS NULL
 		ORDER BY start_date ASC
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, startDate, endDate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find itineraries by date range: %w", err)
 	}
 	defer rows.Close()
-	
+
 	return r.scanItineraries(rows)
 }
 
@@ -395,13 +397,13 @@ func (r *ItineraryRepositoryImpl) FindByUserIDAndDateRange(ctx context.Context, 
 		WHERE user_id = $1 AND start_date >= $2 AND end_date <= $3 AND deleted_at IS NULL
 		ORDER BY start_date ASC
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, userID, startDate, endDate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find itineraries by user and date range: %w", err)
 	}
 	defer rows.Close()
-	
+
 	return r.scanItineraries(rows)
 }
 
@@ -416,13 +418,13 @@ func (r *ItineraryRepositoryImpl) FindByBudgetRange(ctx context.Context, minBudg
 		  AND deleted_at IS NULL
 		ORDER BY created_at DESC
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, minBudget, maxBudget)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find itineraries by budget range: %w", err)
 	}
 	defer rows.Close()
-	
+
 	return r.scanItineraries(rows)
 }
 
@@ -441,13 +443,13 @@ func (r *ItineraryRepositoryImpl) FindByCity(ctx context.Context, city string, l
 		ORDER BY i.created_at DESC
 		LIMIT $2
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, city, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find itineraries by city: %w", err)
 	}
 	defer rows.Close()
-	
+
 	return r.scanItineraries(rows)
 }
 
@@ -462,13 +464,13 @@ func (r *ItineraryRepositoryImpl) FindByAttraction(ctx context.Context, attracti
 		WHERE a.poi_id = $1 AND i.deleted_at IS NULL
 		ORDER BY i.created_at DESC
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, attractionID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find itineraries by attraction: %w", err)
 	}
 	defer rows.Close()
-	
+
 	return r.scanItineraries(rows)
 }
 
@@ -482,13 +484,13 @@ func (r *ItineraryRepositoryImpl) FindRecentItineraries(ctx context.Context, lim
 		ORDER BY created_at DESC
 		LIMIT $1
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find recent itineraries: %w", err)
 	}
 	defer rows.Close()
-	
+
 	return r.scanItineraries(rows)
 }
 
@@ -497,33 +499,32 @@ func (r *ItineraryRepositoryImpl) FindPopularItineraries(ctx context.Context, li
 	// 按收藏数排序（需要在 itinerary 表增加 favorite_count 字段）
 	query := `
 		SELECT id, user_id, name, description, status, start_date, end_date, day_count,
-		       budget, statistics, constraints, created_at, updated_at, published_at,
-		       favorite_count
+		       budget, statistics, constraints, created_at, updated_at, published_at
 		FROM itineraries
 		WHERE deleted_at IS NULL AND status = 'published'
 		ORDER BY favorite_count DESC, created_at DESC
 		LIMIT $1
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find popular itineraries: %w", err)
 	}
 	defer rows.Close()
-	
+
 	return r.scanItineraries(rows)
 }
 
 // FindByConstraints 根据约束条件查询行程（高级查询）
 func (r *ItineraryRepositoryImpl) FindByConstraints(ctx context.Context, query *repository.ItineraryQuery) ([]*entity.Itinerary, error) {
 	sql, args := r.buildQuery(query)
-	
+
 	rows, err := r.db.QueryContext(ctx, sql, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find itineraries by constraints: %w", err)
 	}
 	defer rows.Close()
-	
+
 	return r.scanItineraries(rows)
 }
 
@@ -532,13 +533,13 @@ func (r *ItineraryRepositoryImpl) FindByConstraints(ctx context.Context, query *
 // CountByUserID 统计用户的行程数量
 func (r *ItineraryRepositoryImpl) CountByUserID(ctx context.Context, userID string) (int, error) {
 	query := `SELECT COUNT(*) FROM itineraries WHERE user_id = $1 AND deleted_at IS NULL`
-	
+
 	var count int
 	err := r.db.QueryRowContext(ctx, query, userID).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count itineraries by user: %w", err)
 	}
-	
+
 	return count, nil
 }
 
@@ -552,26 +553,26 @@ func (r *ItineraryRepositoryImpl) CountByCity(ctx context.Context, city string) 
 		JOIN pois p ON a.poi_id = p.id
 		WHERE p.city = $1 AND i.deleted_at IS NULL
 	`
-	
+
 	var count int
 	err := r.db.QueryRowContext(ctx, query, city).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count itineraries by city: %w", err)
 	}
-	
+
 	return count, nil
 }
 
 // CountByStatus 统计指定状态的行程数量
 func (r *ItineraryRepositoryImpl) CountByStatus(ctx context.Context, status entity.ItineraryStatus) (int, error) {
 	query := `SELECT COUNT(*) FROM itineraries WHERE status = $1 AND deleted_at IS NULL`
-	
+
 	var count int
 	err := r.db.QueryRowContext(ctx, query, status).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count itineraries by status: %w", err)
 	}
-	
+
 	return count, nil
 }
 
@@ -581,13 +582,13 @@ func (r *ItineraryRepositoryImpl) CountByDateRange(ctx context.Context, startDat
 		SELECT COUNT(*) FROM itineraries
 		WHERE start_date >= $1 AND end_date <= $2 AND deleted_at IS NULL
 	`
-	
+
 	var count int
 	err := r.db.QueryRowContext(ctx, query, startDate, endDate).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count itineraries by date range: %w", err)
 	}
-	
+
 	return count, nil
 }
 
@@ -601,13 +602,13 @@ func (r *ItineraryRepositoryImpl) ExistsByUserIDAndName(ctx context.Context, use
 			WHERE user_id = $1 AND name = $2 AND deleted_at IS NULL
 		)
 	`
-	
+
 	var exists bool
 	err := r.db.QueryRowContext(ctx, query, userID, name).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("failed to check existence: %w", err)
 	}
-	
+
 	return exists, nil
 }
 
@@ -618,7 +619,7 @@ func (r *ItineraryRepositoryImpl) BatchUpdateStatus(ctx context.Context, ids []s
 	if len(ids) == 0 {
 		return nil
 	}
-	
+
 	placeholders := make([]string, len(ids))
 	args := make([]interface{}, len(ids)+1)
 	args[0] = status
@@ -626,17 +627,17 @@ func (r *ItineraryRepositoryImpl) BatchUpdateStatus(ctx context.Context, ids []s
 		placeholders[i] = fmt.Sprintf("$%d", i+2)
 		args[i+1] = id
 	}
-	
+
 	query := fmt.Sprintf(`
 		UPDATE itineraries SET status = $1, updated_at = $2
 		WHERE id IN (%s) AND deleted_at IS NULL
 	`, strings.Join(placeholders, ","))
-	
+
 	_, err := r.db.ExecContext(ctx, query, append([]interface{}{status, time.Now()}, args[1:]...)...)
 	if err != nil {
 		return fmt.Errorf("failed to batch update status: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -645,24 +646,24 @@ func (r *ItineraryRepositoryImpl) BatchDelete(ctx context.Context, ids []string)
 	if len(ids) == 0 {
 		return nil
 	}
-	
+
 	placeholders := make([]string, len(ids))
 	args := make([]interface{}, len(ids))
 	for i, id := range ids {
 		placeholders[i] = fmt.Sprintf("$%d", i+1)
 		args[i] = id
 	}
-	
+
 	query := fmt.Sprintf(`
 		UPDATE itineraries SET deleted_at = $%d
 		WHERE id IN (%s) AND deleted_at IS NULL
 	`, len(ids)+1, strings.Join(placeholders, ","))
-	
+
 	_, err := r.db.ExecContext(ctx, query, append(args, time.Now())...)
 	if err != nil {
 		return fmt.Errorf("failed to batch delete itineraries: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -677,13 +678,13 @@ func (r *ItineraryRepositoryImpl) fetchDays(ctx context.Context, itineraryID str
 		WHERE itinerary_id = $1
 		ORDER BY day_number ASC
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, daysQuery, itineraryID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch days: %w", err)
 	}
 	defer rows.Close()
-	
+
 	var days []*entity.ItineraryDay
 	for rows.Next() {
 		day := &entity.ItineraryDay{
@@ -691,7 +692,7 @@ func (r *ItineraryRepositoryImpl) fetchDays(ctx context.Context, itineraryID str
 			Meals:       make([]*entity.DayMeal, 0),
 			Statistics:  &entity.DayStatistics{},
 		}
-		
+
 		err := rows.Scan(
 			&day.DayNumber,
 			&day.Date,
@@ -706,31 +707,31 @@ func (r *ItineraryRepositoryImpl) fetchDays(ctx context.Context, itineraryID str
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan day: %w", err)
 		}
-		
+
 		// 查询该天的景点
 		attractions, err := r.fetchAttractions(ctx, day.DayNumber, itineraryID)
 		if err != nil {
 			return nil, err
 		}
 		day.Attractions = attractions
-		
+
 		// 查询该天的餐饮
 		meals, err := r.fetchMeals(ctx, day.DayNumber, itineraryID)
 		if err != nil {
 			return nil, err
 		}
 		day.Meals = meals
-		
+
 		// 查询该天的酒店
 		hotel, err := r.fetchHotel(ctx, day.DayNumber, itineraryID)
 		if err != nil && err != sql.ErrNoRows {
 			return nil, err
 		}
 		day.Hotel = hotel
-		
+
 		days = append(days, day)
 	}
-	
+
 	return days, nil
 }
 
@@ -742,19 +743,19 @@ func (r *ItineraryRepositoryImpl) fetchAttractions(ctx context.Context, dayNumbe
 		WHERE itinerary_id = $1 AND day_number = $2
 		ORDER BY "order" ASC
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, itineraryID, dayNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch attractions: %w", err)
 	}
 	defer rows.Close()
-	
+
 	var attractions []*entity.DayAttraction
 	for rows.Next() {
 		attr := &entity.DayAttraction{}
 		var poiID string
 		var transportationJSON []byte
-		
+
 		err := rows.Scan(
 			&attr.ID,
 			&poiID,
@@ -769,14 +770,14 @@ func (r *ItineraryRepositoryImpl) fetchAttractions(ctx context.Context, dayNumbe
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan attraction: %w", err)
 		}
-		
+
 		// 加载 POI 信息
 		poi, err := r.loadPOI(ctx, poiID)
 		if err != nil {
 			return nil, err
 		}
 		attr.POI = poi
-		
+
 		// 解析交通信息
 		if len(transportationJSON) > 0 {
 			var trans entity.Transportation
@@ -784,10 +785,10 @@ func (r *ItineraryRepositoryImpl) fetchAttractions(ctx context.Context, dayNumbe
 				attr.Transportation = &trans
 			}
 		}
-		
+
 		attractions = append(attractions, attr)
 	}
-	
+
 	return attractions, nil
 }
 
@@ -799,18 +800,18 @@ func (r *ItineraryRepositoryImpl) fetchMeals(ctx context.Context, dayNumber int,
 		WHERE itinerary_id = $1 AND day_number = $2
 		ORDER BY meal_time ASC
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, itineraryID, dayNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch meals: %w", err)
 	}
 	defer rows.Close()
-	
+
 	var meals []*entity.DayMeal
 	for rows.Next() {
 		meal := &entity.DayMeal{}
 		var restaurantID string
-		
+
 		err := rows.Scan(
 			&meal.ID,
 			&meal.MealType,
@@ -822,7 +823,7 @@ func (r *ItineraryRepositoryImpl) fetchMeals(ctx context.Context, dayNumber int,
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan meal: %w", err)
 		}
-		
+
 		// 加载餐厅信息
 		if restaurantID != "" {
 			restaurant, err := r.loadPOI(ctx, restaurantID)
@@ -830,10 +831,10 @@ func (r *ItineraryRepositoryImpl) fetchMeals(ctx context.Context, dayNumber int,
 				meal.Restaurant = restaurant
 			}
 		}
-		
+
 		meals = append(meals, meal)
 	}
-	
+
 	return meals, nil
 }
 
@@ -844,7 +845,7 @@ func (r *ItineraryRepositoryImpl) fetchHotel(ctx context.Context, dayNumber int,
 		FROM day_hotels
 		WHERE itinerary_id = $1 AND day_number = $2
 	`
-	
+
 	hotel := &entity.DayHotel{}
 	err := r.db.QueryRowContext(ctx, query, itineraryID, dayNumber).Scan(
 		&hotel.ID,
@@ -856,11 +857,11 @@ func (r *ItineraryRepositoryImpl) fetchHotel(ctx context.Context, dayNumber int,
 		&hotel.RoomType,
 		&hotel.Notes,
 	)
-	
+
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return hotel, nil
 }
 
@@ -873,7 +874,7 @@ func (r *ItineraryRepositoryImpl) loadPOI(ctx context.Context, poiID string) (*e
 		FROM pois
 		WHERE id = $1
 	`
-	
+
 	var poi entity.POI
 	err := r.db.QueryRowContext(ctx, query, poiID).Scan(
 		&poi.ID,
@@ -887,11 +888,11 @@ func (r *ItineraryRepositoryImpl) loadPOI(ctx context.Context, poiID string) (*e
 		&poi.Rating,
 		&poi.PriceLevel,
 	)
-	
+
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &poi, nil
 }
 
@@ -905,7 +906,7 @@ func (r *ItineraryRepositoryImpl) saveDays(ctx context.Context, itineraryID stri
 				place_count, daily_cost, attraction_time, is_rest
 			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		`
-		
+
 		dayID := generateID()
 		_, err := r.db.ExecContext(ctx, dayQuery,
 			dayID,
@@ -923,21 +924,21 @@ func (r *ItineraryRepositoryImpl) saveDays(ctx context.Context, itineraryID stri
 		if err != nil {
 			return fmt.Errorf("failed to save day: %w", err)
 		}
-		
+
 		// 保存该天的景点
 		for _, attr := range day.Attractions {
 			if err := r.saveAttraction(ctx, itineraryID, day.DayNumber, attr); err != nil {
 				return err
 			}
 		}
-		
+
 		// 保存该天的餐饮
 		for _, meal := range day.Meals {
 			if err := r.saveMeal(ctx, itineraryID, day.DayNumber, meal); err != nil {
 				return err
 			}
 		}
-		
+
 		// 保存该天的酒店
 		if day.Hotel != nil {
 			if err := r.saveHotel(ctx, itineraryID, day.DayNumber, day.Hotel); err != nil {
@@ -945,21 +946,24 @@ func (r *ItineraryRepositoryImpl) saveDays(ctx context.Context, itineraryID stri
 			}
 		}
 	}
-	
+
 	return nil
 }
 
 // saveAttraction 保存景点
 func (r *ItineraryRepositoryImpl) saveAttraction(ctx context.Context, itineraryID string, dayNumber int, attr *entity.DayAttraction) error {
+	if attr == nil || attr.POI == nil {
+		return nil
+	}
 	transportationJSON, _ := json.Marshal(attr.Transportation)
-	
+
 	query := `
 		INSERT INTO day_attractions (
 			id, itinerary_id, day_number, poi_id, start_time, end_time,
 			stay_duration, "order", cost, transportation, notes
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 	`
-	
+
 	_, err := r.db.ExecContext(ctx, query,
 		generateID(),
 		itineraryID,
@@ -973,6 +977,187 @@ func (r *ItineraryRepositoryImpl) saveAttraction(ctx context.Context, itineraryI
 		transportationJSON,
 		attr.Notes,
 	)
-	
+
 	return err
+}
+
+// saveMeal 保存餐饮。
+func (r *ItineraryRepositoryImpl) saveMeal(ctx context.Context, itineraryID string, dayNumber int, meal *entity.DayMeal) error {
+	if meal == nil {
+		return nil
+	}
+	restaurantID := ""
+	if meal.Restaurant != nil {
+		restaurantID = meal.Restaurant.ID
+	}
+
+	query := `
+		INSERT INTO day_meals (
+			id, itinerary_id, day_number, meal_type, restaurant_id, meal_time, cost, notes
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+	`
+
+	_, err := r.db.ExecContext(ctx, query,
+		generateID(),
+		itineraryID,
+		dayNumber,
+		meal.MealType,
+		restaurantID,
+		meal.Time,
+		meal.Cost,
+		meal.Notes,
+	)
+	return err
+}
+
+// saveHotel 保存酒店。
+func (r *ItineraryRepositoryImpl) saveHotel(ctx context.Context, itineraryID string, dayNumber int, hotel *entity.DayHotel) error {
+	if hotel == nil {
+		return nil
+	}
+	query := `
+		INSERT INTO day_hotels (
+			id, itinerary_id, day_number, hotel_name, address, check_in_time, check_out_time, cost, room_type, notes
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+	`
+
+	_, err := r.db.ExecContext(ctx, query,
+		generateID(),
+		itineraryID,
+		dayNumber,
+		hotel.HotelName,
+		hotel.Address,
+		hotel.CheckInTime,
+		hotel.CheckOutTime,
+		hotel.Cost,
+		hotel.RoomType,
+		hotel.Notes,
+	)
+	return err
+}
+
+// deleteDays 删除一个行程关联的日程明细表。
+func (r *ItineraryRepositoryImpl) deleteDays(ctx context.Context, itineraryID string) error {
+	if _, err := r.db.ExecContext(ctx, `DELETE FROM day_attractions WHERE itinerary_id = $1`, itineraryID); err != nil {
+		return fmt.Errorf("failed to delete attractions: %w", err)
+	}
+	if _, err := r.db.ExecContext(ctx, `DELETE FROM day_meals WHERE itinerary_id = $1`, itineraryID); err != nil {
+		return fmt.Errorf("failed to delete meals: %w", err)
+	}
+	if _, err := r.db.ExecContext(ctx, `DELETE FROM day_hotels WHERE itinerary_id = $1`, itineraryID); err != nil {
+		return fmt.Errorf("failed to delete hotels: %w", err)
+	}
+	if _, err := r.db.ExecContext(ctx, `DELETE FROM itinerary_days WHERE itinerary_id = $1`, itineraryID); err != nil {
+		return fmt.Errorf("failed to delete days: %w", err)
+	}
+	return nil
+}
+
+// scanItineraries 扫描行程列表并补全 days。
+func (r *ItineraryRepositoryImpl) scanItineraries(rows *sql.Rows) ([]*entity.Itinerary, error) {
+	var itineraries []*entity.Itinerary
+	for rows.Next() {
+		var it entity.Itinerary
+		var budgetJSON, statisticsJSON, constraintsJSON []byte
+		var publishedAt sql.NullTime
+
+		err := rows.Scan(
+			&it.ID,
+			&it.UserID,
+			&it.Name,
+			&it.Description,
+			&it.Status,
+			&it.StartDate,
+			&it.EndDate,
+			&it.DayCount,
+			&budgetJSON,
+			&statisticsJSON,
+			&constraintsJSON,
+			&it.CreatedAt,
+			&it.UpdatedAt,
+			&publishedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan itinerary: %w", err)
+		}
+
+		if len(budgetJSON) > 0 {
+			_ = json.Unmarshal(budgetJSON, &it.Budget)
+		}
+		if len(statisticsJSON) > 0 {
+			_ = json.Unmarshal(statisticsJSON, &it.Statistics)
+		}
+		if len(constraintsJSON) > 0 {
+			_ = json.Unmarshal(constraintsJSON, &it.Constraints)
+		}
+		if publishedAt.Valid {
+			it.PublishedAt = &publishedAt.Time
+		}
+
+		days, err := r.fetchDays(context.Background(), it.ID)
+		if err == nil {
+			it.Days = days
+		}
+
+		itineraries = append(itineraries, &it)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return itineraries, nil
+}
+
+// buildQuery 生成约束查询 SQL。
+func (r *ItineraryRepositoryImpl) buildQuery(q *repository.ItineraryQuery) (string, []interface{}) {
+	base := `
+		SELECT id, user_id, name, description, status, start_date, end_date, day_count,
+		       budget, statistics, constraints, created_at, updated_at, published_at
+		FROM itineraries
+		WHERE deleted_at IS NULL
+	`
+	if q == nil {
+		return base + ` ORDER BY created_at DESC`, nil
+	}
+
+	var (
+		conds []string
+		args  []interface{}
+	)
+	add := func(cond string, val interface{}) {
+		args = append(args, val)
+		conds = append(conds, fmt.Sprintf(cond, len(args)))
+	}
+
+	if q.UserID != nil && *q.UserID != "" {
+		add("user_id = $%d", *q.UserID)
+	}
+	if q.Status != nil {
+		add("status = $%d", *q.Status)
+	}
+	if q.Keyword != "" {
+		args = append(args, "%"+q.Keyword+"%")
+		idx := len(args)
+		conds = append(conds, fmt.Sprintf("(name ILIKE $%d)", idx))
+	}
+
+	query := base
+	if len(conds) > 0 {
+		query += " AND " + strings.Join(conds, " AND ")
+	}
+
+	limit := q.Limit
+	if limit <= 0 {
+		limit = 20
+	}
+	query += fmt.Sprintf(" ORDER BY created_at DESC LIMIT %d", limit)
+	if q.Offset > 0 {
+		query += fmt.Sprintf(" OFFSET %d", q.Offset)
+	}
+
+	return query, args
+}
+
+func generateID() string {
+	return uuid.New().String()
 }

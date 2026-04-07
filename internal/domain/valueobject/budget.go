@@ -19,7 +19,7 @@ const (
 	CurrencyOther Currency = "OTHER" // Other
 )
 
-//这里其实就是简单写个汇率，没有调用api，后续可以改进提升一下
+// 这里其实就是简单写个汇率，没有调用api，后续可以改进提升一下
 func transformCurrencyFromUSD(amount float64, from Currency, to Currency) (float64, error) {
 	if from != CurrencyUSD {
 		return 0, fmt.Errorf("不支持此货币: %s", from)

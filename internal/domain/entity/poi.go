@@ -2,8 +2,8 @@ package entity
 
 import (
 	"errors"
-	"time"
 	"strings"
+	"time"
 )
 
 // ========== 错误定义 ==========
@@ -24,16 +24,16 @@ var (
 type Category string
 
 const (
-	CategoryAttraction   Category = "attraction"    // 景点
-	CategoryRestaurant   Category = "restaurant"    // 餐厅
-	CategoryHotel        Category = "hotel"         // 酒店
-	CategoryShopping     Category = "shopping"      // 购物
+	CategoryAttraction    Category = "attraction"    // 景点
+	CategoryRestaurant    Category = "restaurant"    // 餐厅
+	CategoryHotel         Category = "hotel"         // 酒店
+	CategoryShopping      Category = "shopping"      // 购物
 	CategoryEntertainment Category = "entertainment" // 娱乐
-	CategoryTransport    Category = "transport"     // 交通枢纽
-	CategoryNature       Category = "nature"        // 自然风光
-	CategoryMuseum       Category = "museum"        // 博物馆
-	CategoryTemple       Category = "temple"        // 寺庙/神社
-	CategoryPark         Category = "park"          // 公园
+	CategoryTransport     Category = "transport"     // 交通枢纽
+	CategoryNature        Category = "nature"        // 自然风光
+	CategoryMuseum        Category = "museum"        // 博物馆
+	CategoryTemple        Category = "temple"        // 寺庙/神社
+	CategoryPark          Category = "park"          // 公园
 )
 
 // IsValid 验证分类是否有效
@@ -57,11 +57,11 @@ func (c Category) String() string {
 type PriceLevel string
 
 const (
-	PriceLevelFree     PriceLevel = "free"     // 免费
-	PriceLevelCheap    PriceLevel = "cheap"    // ¥ (0-100)
-	PriceLevelMedium   PriceLevel = "medium"   // ¥¥ (100-300)
+	PriceLevelFree      PriceLevel = "free"      // 免费
+	PriceLevelCheap     PriceLevel = "cheap"     // ¥ (0-100)
+	PriceLevelMedium    PriceLevel = "medium"    // ¥¥ (100-300)
 	PriceLevelExpensive PriceLevel = "expensive" // ¥¥¥ (300-1000)
-	PriceLevelLuxury   PriceLevel = "luxury"   // ¥¥¥¥ (1000+)
+	PriceLevelLuxury    PriceLevel = "luxury"    // ¥¥¥¥ (1000+)
 )
 
 // IsValid 验证价格等级是否有效
@@ -97,12 +97,12 @@ func (p PriceLevel) ToRange() (min, max int) {
 type TransportMode string
 
 const (
-	TransportWalk    TransportMode = "walk"     // 步行
-	TransportBus     TransportMode = "bus"      // 公交
-	TransportSubway  TransportMode = "subway"   // 地铁
-	TransportTaxi    TransportMode = "taxi"     // 出租车
-	TransportTrain   TransportMode = "train"    // 火车
-	TransportBicycle TransportMode = "bicycle"  // 自行车
+	TransportWalk    TransportMode = "walk"    // 步行
+	TransportBus     TransportMode = "bus"     // 公交
+	TransportSubway  TransportMode = "subway"  // 地铁
+	TransportTaxi    TransportMode = "taxi"    // 出租车
+	TransportTrain   TransportMode = "train"   // 火车
+	TransportBicycle TransportMode = "bicycle" // 自行车
 )
 
 // ========== 值对象定义 ==========
@@ -121,20 +121,19 @@ func (l Location) IsValid() bool {
 // DistanceTo 计算到另一个位置的距离（公里，Haversine公式）
 func (l Location) DistanceTo(other Location) float64 {
 	const R = 6371 // 地球半径（公里）
-	
+
 	lat1 := l.Lat * 3.1415926 / 180
 	lat2 := other.Lat * 3.1415926 / 180
 	dLat := (other.Lat - l.Lat) * 3.1415926 / 180
 	dLng := (other.Lng - l.Lng) * 3.1415926 / 180
-	
+
 	a := sin(dLat/2)*sin(dLat/2) +
 		cos(lat1)*cos(lat2)*
 			sin(dLng/2)*sin(dLng/2)
 	c := 2 * atan2(sqrt(a), sqrt(1-a))
-	
+
 	return R * c
 }
-
 
 func sin(x float64) float64 {
 	// 简化实现，实际应使用 math.Sin
@@ -213,7 +212,7 @@ type OpeningHours struct {
 	Friday    []TimeRange `json:"friday"`
 	Saturday  []TimeRange `json:"saturday"`
 	Sunday    []TimeRange `json:"sunday"`
-	Holidays  []TimeRange `json:"holidays"` // 节假日特殊时间
+	Holidays  []TimeRange `json:"holidays"`  // 节假日特殊时间
 	IsClosed  bool        `json:"is_closed"` // 是否全天关闭
 	Note      string      `json:"note"`      // 备注
 }
@@ -223,7 +222,7 @@ func (oh OpeningHours) IsOpen(weekday int, timeStr string) bool {
 	if oh.IsClosed {
 		return false
 	}
-	
+
 	var ranges []TimeRange
 	switch weekday {
 	case 1: // Monday
@@ -243,7 +242,7 @@ func (oh OpeningHours) IsOpen(weekday int, timeStr string) bool {
 	default:
 		return false
 	}
-	
+
 	for _, tr := range ranges {
 		if tr.Contains(timeStr) {
 			return true
@@ -279,51 +278,51 @@ type POI struct {
 	NameLocal   string   `json:"name_local"`
 	Category    Category `json:"category"`
 	SubCategory string   `json:"sub_category"`
-	
+
 	// 地理位置
 	Location Location `json:"location"`
 	Address  string   `json:"address"`
 	City     string   `json:"city"`
 	District string   `json:"district"`
 	GeoHash  string   `json:"geohash"`
-	
+
 	// 时间信息
 	OpeningHours OpeningHours `json:"opening_hours"`
 	AvgStayTime  int          `json:"avg_stay_time"` // 平均停留时间（分钟）
 	BestTime     []string     `json:"best_time"`     // 最佳游览季节/时段
 	Duration     int          `json:"duration"`      // 建议游玩时长（分钟）
-	
+
 	// 价格信息
 	PriceLevel  PriceLevel `json:"price_level"`
 	TicketPrice float64    `json:"ticket_price"` // 门票价格（景点）
 	AvgPrice    float64    `json:"avg_price"`    // 人均消费（餐厅/酒店）
-	
+
 	// 评分与热度
 	Rating      float64 `json:"rating"`       // 评分 0-5
 	RatingCount int     `json:"rating_count"` // 评价数量
 	Popularity  float64 `json:"popularity"`   // 热度分 0-100
 	Rank        int     `json:"rank"`         // 城市内排名
-	
+
 	// 标签与特征
-	Tags       []Tag    `json:"tags"`
-	Features   []string `json:"features"`     // 特色属性
+	Tags        []Tag    `json:"tags"`
+	Features    []string `json:"features"`     // 特色属性
 	SimilarPOIs []string `json:"similar_pois"` // 相似POI ID列表
-	
+
 	// 多媒体
-	Images    []Image `json:"images"`
-	Thumbnail string  `json:"thumbnail"`
+	Images    []Image  `json:"images"`
+	Thumbnail string   `json:"thumbnail"`
 	Videos    []string `json:"videos"`
-	
+
 	// 预订信息
 	BookingURL string `json:"booking_url"`
 	IsBookable bool   `json:"is_bookable"`
 	Inventory  int    `json:"inventory"` // 库存（门票/房间）
-	
+
 	// 扩展信息
 	Description string   `json:"description"`
 	Tips        []string `json:"tips"`
 	Warnings    []string `json:"warnings"`
-	
+
 	// 元数据
 	Source     string    `json:"source"`
 	Confidence float64   `json:"confidence"`
@@ -341,23 +340,23 @@ func NewPOI(
 	city string,
 ) (*POI, error) {
 	poi := &POI{
-		ID:           generatePOIID(), // 需要实现
-		Name:         name,
-		Category:     category,
-		Location:     Location{Lat: lat, Lng: lng},
-		City:         city,
-		Rating:       0,
-		Popularity:   0,
-		IsBookable:   false,
-		Confidence:   1.0,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		ID:         generatePOIID(), // 需要实现
+		Name:       name,
+		Category:   category,
+		Location:   Location{Lat: lat, Lng: lng},
+		City:       city,
+		Rating:     0,
+		Popularity: 0,
+		IsBookable: false,
+		Confidence: 1.0,
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
 	}
-	
+
 	if err := poi.Validate(); err != nil {
 		return nil, err
 	}
-	
+
 	return poi, nil
 }
 
@@ -379,37 +378,37 @@ func (p *POI) Validate() error {
 	if p.ID == "" {
 		return ErrInvalidPOIID
 	}
-	
+
 	// 验证名称
 	if len(p.Name) < 1 || len(p.Name) > 200 {
 		return ErrInvalidPOIName
 	}
-	
+
 	// 验证分类
 	if !p.Category.IsValid() {
 		return ErrInvalidPOICategory
 	}
-	
+
 	// 验证位置
 	if !p.Location.IsValid() {
 		return ErrInvalidPOILocation
 	}
-	
+
 	// 验证价格
 	if p.TicketPrice < 0 {
 		return ErrInvalidPOIPrice
 	}
-	
+
 	// 验证评分
 	if p.Rating < 0 || p.Rating > 5 {
 		return ErrInvalidPOIRating
 	}
-	
+
 	// 验证价格等级
 	if p.PriceLevel != "" && !p.PriceLevel.IsValid() {
 		return ErrInvalidPOIPrice
 	}
-	
+
 	return nil
 }
 
@@ -420,10 +419,10 @@ func (p *POI) UpdateRating(newRating float64, newCount int) {
 	if newRating < 0 || newRating > 5 {
 		return
 	}
-	
+
 	// 加权平均
 	if p.RatingCount > 0 {
-		p.Rating = (p.Rating*float64(p.RatingCount) + newRating*float64(newCount)) / 
+		p.Rating = (p.Rating*float64(p.RatingCount) + newRating*float64(newCount)) /
 			float64(p.RatingCount+newCount)
 	} else {
 		p.Rating = newRating
@@ -492,7 +491,7 @@ func (p *POI) UpdatePrice(price float64) {
 	}
 	p.TicketPrice = price
 	p.UpdatedAt = time.Now()
-	
+
 	// 自动更新价格等级
 	p.updatePriceLevel()
 }
@@ -529,19 +528,19 @@ func (p *POI) IsAvailable(weekday int, timeStr string) bool {
 	if !p.OpeningHours.IsOpen(weekday, timeStr) {
 		return false
 	}
-	
+
 	// 检查库存（如果是可预订的）
 	if p.IsBookable && p.Inventory <= 0 {
 		return false
 	}
-	
+
 	return true
 }
 
 // CalculateTravelTime 计算从指定位置到 POI 的交通时间
 func (p *POI) CalculateTravelTime(from Location, mode TransportMode) int {
 	distance := from.DistanceTo(p.Location)
-	
+
 	// 根据交通方式估算速度（公里/小时）
 	var speed float64
 	switch mode {
@@ -556,7 +555,7 @@ func (p *POI) CalculateTravelTime(from Location, mode TransportMode) int {
 	default:
 		speed = 20
 	}
-	
+
 	// 时间（分钟）
 	return int((distance / speed) * 60)
 }
@@ -566,7 +565,7 @@ func (p *POI) MatchTags(targetTags []string) bool {
 	if len(targetTags) == 0 {
 		return true
 	}
-	
+
 	for _, tt := range targetTags {
 		for _, pt := range p.Tags {
 			if pt.ID == tt || pt.Name == tt {
@@ -582,7 +581,7 @@ func (p *POI) MatchAllTags(targetTags []string) bool {
 	if len(targetTags) == 0 {
 		return true
 	}
-	
+
 	for _, tt := range targetTags {
 		matched := false
 		for _, pt := range p.Tags {

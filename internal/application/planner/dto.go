@@ -1,12 +1,18 @@
 package planner
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"atlas-routex/internal/domain/entity"
 )
 
+// TripSolver 是规划用例依赖的求解端口。
+type TripSolver interface {
+	Solve(ctx context.Context, in *SolverInput) (*SolverOutput, error)
+	Name() string
+}
 
 // 应用层命令（用例入参，可与 HTTP/gRPC 解耦）
 
@@ -111,9 +117,7 @@ func (in *AdjustInput) Validate() error {
 	return nil
 }
 
-
 // 传输 DTO（JSON 等协议层使用，避免直接暴露实体）
-
 
 // DestinationDTO 目的地（城市/区域）。
 type DestinationDTO struct {
@@ -169,16 +173,16 @@ func ConstraintFromEntity(c entity.Constraint) ConstraintDTO {
 
 // PlanCreateRequest 创建/规划行程的 API 形态入参。
 type PlanCreateRequest struct {
-	UserID            string          `json:"user_id"`
-	ItineraryName     string          `json:"itinerary_name"`
-	Description       string          `json:"description,omitempty"`
-	Destination       DestinationDTO  `json:"destination"`
-	StartDate         time.Time       `json:"start_date"`
-	EndDate           time.Time       `json:"end_date"`
-	Budget            *BudgetDTO      `json:"budget,omitempty"`
-	Preferences       *PreferencesDTO `json:"preferences,omitempty"`
-	Constraints       []ConstraintDTO `json:"constraints,omitempty"`
-	MaxCandidatePOIs  int             `json:"max_candidate_pois,omitempty"`
+	UserID           string          `json:"user_id"`
+	ItineraryName    string          `json:"itinerary_name"`
+	Description      string          `json:"description,omitempty"`
+	Destination      DestinationDTO  `json:"destination"`
+	StartDate        time.Time       `json:"start_date"`
+	EndDate          time.Time       `json:"end_date"`
+	Budget           *BudgetDTO      `json:"budget,omitempty"`
+	Preferences      *PreferencesDTO `json:"preferences,omitempty"`
+	Constraints      []ConstraintDTO `json:"constraints,omitempty"`
+	MaxCandidatePOIs int             `json:"max_candidate_pois,omitempty"`
 }
 
 // ValidateRequest 校验 HTTP 层入参。

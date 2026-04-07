@@ -1,113 +1,61 @@
 package valueobject
 
-import {
-	"fmt"
-}
+import "fmt"
 
+// Continent / Country / City 表示目的地的基础地理枚举值。
 type Continent string
 type Country string
 type City string
 
 const (
-	ContinentNorthAmerica Continent = "NA" // 北美洲
-	ContinentSouthAmerica Continent = "SA" // 南美洲
-	ContinentEurope       Continent = "EU" // 欧洲
-	ContinentAsia         Continent = "AS" // 亚洲
-	ContinentAfrica       Continent = "AF" // 非洲
-	ContinentOceania      Continent = "OC" // 大洋洲
+	ContinentNorthAmerica Continent = "NA"
+	ContinentSouthAmerica Continent = "SA"
+	ContinentEurope       Continent = "EU"
+	ContinentAsia         Continent = "AS"
+	ContinentAfrica       Continent = "AF"
+	ContinentOceania      Continent = "OC"
 )
 
-type ContinentNorthAmerica Country{
-	USA  Country = "USA"
-	Canada Country = "Canada"
+const (
+	CountryUSA       Country = "USA"
+	CountryCanada    Country = "Canada"
+	CountryUK        Country = "UK"
+	CountryFrance    Country = "France"
+	CountryGermany   Country = "Germany"
+	CountryChina     Country = "China"
+	CountryJapan     Country = "Japan"
+	CountrySingapore Country = "Singapore"
+	CountryAustralia Country = "Australia"
+)
+
+const (
+	CityBeijing    City = "Beijing"
+	CityShanghai   City = "Shanghai"
+	CityTokyo      City = "Tokyo"
+	CitySingaporeC City = "Singapore"
+	CityLondon     City = "London"
+	CityParis      City = "Paris"
+	CityBerlin     City = "Berlin"
+	CityNewYork    City = "New York"
+	CityToronto    City = "Toronto"
+	CitySydney     City = "Sydney"
+)
+
+// Region 是一个简单的地理位置值对象。
+type Region struct {
+	Continent Continent `json:"continent"`
+	Country   Country   `json:"country"`
+	City      City      `json:"city"`
 }
 
-type ContinentEurope Country {
-	UK Country = "UK"
-	France Country = "France"
-	Germany Country = "Germany"
+// Validate 校验地理层级是否合法。
+func (r Region) Validate() error {
+	if r.Continent == "" || r.Country == "" || r.City == "" {
+		return fmt.Errorf("continent, country and city are required")
+	}
+	return nil
 }
 
-type ContinentAsia Country {
-	China Country = "China"
-	Japan Country = "Japan"
-	Singapore Country = "Singapore"
-}
-
-type ContinentOceania Country {
-	Australia Country = "Australia"
-}
-
-type USA City {
-	NewYork City = "New York"
-	LosAngeles City = "Los Angeles"
-	Chicago City = "Chicago"
-	Houston City = "Houston"
-	Phoenix City = "Phoenix"
-	Philadelphia City = "Philadelphia"
-	SanAntonio City = "San Antonio"
-	SanDiego City = "San Diego"
-	Dallas City = "Dallas"
-}
-
-type Canada City {
-	Toronto City = "Toronto"
-	Vancouver City = "Vancouver"
-}
-
-type UK City {
-	London City = "London"
-	Manchester City = "Manchester"
-	Glasgow City = "Glasgow"
-	Liverpool City = "Liverpool"
-	Birmingham City = "Birmingham"
-	Edinburgh City = "Edinburgh"
-}
-
-type France City {
-	Paris City = "Paris"
-	Lyon City = "Lyon"
-	Marseille City = "Marseille"
-	Toulouse City = "Toulouse"
-}
-
-type Germany City {
-	Berlin City = "Berlin"
-	Munich City = "Munich"
-	Hamburg City = "Hamburg"
-	Cologne City = "Cologne"
-}
-
-type China City {
-	Beijing City = "Beijing"
-	Shanghai City = "Shanghai"
-	Guangzhou City = "Guangzhou"
-	Shenzhen City = "Shenzhen"
-	Chengdu City = "Chengdu"
-	XiAn City = "Xi'an"
-	Dalian City = "Dalian"
-	ShenYang City = "Shenyang"
-	HongKong City = "Hong Kong"
-	Suzhou City = "Suzhou"
-	Hangzhou City = "Hangzhou"
-	Nanjing City = "Nanjing"
-	Wuhan City = "Wuhan"
-	Chongqing City = "Chongqing"
-	Tianjin City = "Tianjin"
-	Ningbo City = "Ningbo"
-	Qingdao City = "Qingdao"
-	XiAn City = "Xi'an"
-	Fuzhou City = "Fuzhou"
-	Xiamen City = "Xiamen"
-	Kunming City = "Kunming"
-	Urumqi City = "Urumqi"
-	Harbin City = "Harbin"
-	Hefei City = "Hefei"
-	Kunshan City = "Kunshan"
-	Jinan City = "Jinan"
-	Changsha City = "Changsha"
-	Shijiazhuang City = "Shijiazhuang"
-	Nantong City = "Nantong"
-	Jiangsu City = "Jiangsu"
-
+func (r Region) String() string {
+	return fmt.Sprintf("%s/%s/%s", r.Continent, r.Country, r.City)
 }

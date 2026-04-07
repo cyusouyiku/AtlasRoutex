@@ -14,55 +14,13 @@ import (
 
 // 调整行程相关错误。
 var (
-	ErrInvalidAdjustInput    = errors.New("planner: invalid adjust input")
-	ErrItineraryNotFound     = errors.New("planner: itinerary not found")
-	ErrAdjustVersionConflict = errors.New("planner: itinerary was modified by another request")
-	ErrAdjustForbidden       = errors.New("planner: user cannot modify this itinerary")
-	ErrAttractionNotFound    = errors.New("planner: attraction not found on given day")
+	ErrInvalidAdjustInput     = errors.New("planner: invalid adjust input")
+	ErrItineraryNotFound      = errors.New("planner: itinerary not found")
+	ErrAdjustVersionConflict  = errors.New("planner: itinerary was modified by another request")
+	ErrAdjustForbidden        = errors.New("planner: user cannot modify this itinerary")
+	ErrAttractionNotFound     = errors.New("planner: attraction not found on given day")
 	ErrReplacementPOINotFound = errors.New("planner: replacement poi not found")
 )
-
-// PatchKind 变更类型。
-type PatchKind string
-
-const (
-	PatchReplacePOI       PatchKind = "replace_poi"
-	PatchReschedule       PatchKind = "reschedule"
-	PatchRemoveAttraction PatchKind = "remove_attraction"
-)
-
-// AttractionPatch 对某一天某一活动的修改意图。
-type AttractionPatch struct {
-	Kind         PatchKind
-	DayNumber    int    // 1-based，与 entity.ItineraryDay 一致
-	AttractionID string // DayAttraction.ID
-
-	// ReplacePOI：替换为新的 POI（仓储拉取）。
-	NewPOIID string
-
-	// Reschedule：直接改写时段；若只填其一可由调用方保证与 StayDuration 一致。
-	NewStart       *time.Time
-	NewEnd         *time.Time
-	NewStayMinutes *int
-}
-
-// AdjustInput 调整命令。
-type AdjustInput struct {
-	ItineraryID string
-	// UserID 为空则跳过归属校验；非空时必须与行程 UserID 一致。
-	UserID string
-	// ExpectedUpdatedAt 乐观锁：非空时须与当前行程 UpdatedAt 一致（API 层可传客户端上次读到的值）。
-	ExpectedUpdatedAt *time.Time
-
-	Patches []AttractionPatch
-
-	// FullReplan 为 true 时，在应用补丁后按城市候选集调用 TripSolver 全量重排天与顺序；
-	// 为 false 时仅应用补丁并重算费用/统计（适合只改时段）。
-	FullReplan bool
-
-	// ReplanMaxCandidates 全量重算时拉取 POI 上限，0 表示默认 80。
-	ReplanMaxCandidates int
-}
 
 // AdjustUsecase 行程调整用例：加载 → 并发占位 → 应用补丁 → 可选全量重算 → Update。
 type AdjustUsecase struct {

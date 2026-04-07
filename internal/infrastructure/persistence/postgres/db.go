@@ -8,30 +8,28 @@ import (
 	"fmt"
 	"log"
 	"time"
-	
+
 	_ "github.com/lib/pq" // PostgreSQL 驱动（匿名导入）
 )
 
-
-
-//Config配置
+// Config配置
 type Config struct {
-	Host string
-	Port int
-	User string
+	Host     string
+	Port     int
+	User     string
 	Password string
 	Database string
 	SSLMode  string // disable, require, verify-ca, verify-full
 
 	//连接池配置
-	MaxOpenConns int //最大打开连接数 
-	MaxIdleConns int //最大空闲连接数
+	MaxOpenConns    int           //最大打开连接数
+	MaxIdleConns    int           //最大空闲连接数
 	ConnMaxLifetime time.Duration //连接最大存活时间
 	ConnMaxIdleTime time.Duration //连接最大空闲时间
 
 	//超时配置
 	ConnectTimeout int //连接超时
-	QueryTimeout int //查询超时
+	QueryTimeout   int //查询超时
 }
 
 // DefaultConfig 返回默认配置
@@ -52,34 +50,30 @@ func DefaultConfig() *Config {
 	}
 }
 
-
-
-//创建新的连接
+// 创建新的连接
 func NewConnection(cfg *Config) (*sql.DB, error) {
 	// 1. 构建 DSN（数据源名称）
 	dsn := buildDSN(cfg)
-	
+
 	// 2. 打开数据库连接
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
-	
+
 	// 3. 配置连接池
 	configureConnectionPool(db, cfg)
-	
+
 	// 4. 验证连接是否可用
 	if err := ping(db); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
-	
+
 	log.Printf("Database connected successfully: %s:%d/%s", cfg.Host, cfg.Port, cfg.Database)
-	
+
 	return db, nil
 }
-
-
 
 // buildDSN 构建 PostgreSQL 连接字符串
 func buildDSN(cfg *Config) string {
@@ -102,17 +96,17 @@ func configureConnectionPool(db *sql.DB, cfg *Config) {
 	if cfg.MaxOpenConns > 0 {
 		db.SetMaxOpenConns(cfg.MaxOpenConns)
 	}
-	
+
 	// 设置最大空闲连接数
 	if cfg.MaxIdleConns > 0 {
 		db.SetMaxIdleConns(cfg.MaxIdleConns)
 	}
-	
+
 	// 设置连接最大存活时间
 	if cfg.ConnMaxLifetime > 0 {
 		db.SetConnMaxLifetime(cfg.ConnMaxLifetime)
 	}
-	
+
 	// 设置连接最大空闲时间
 	if cfg.ConnMaxIdleTime > 0 {
 		db.SetConnMaxIdleTime(cfg.ConnMaxIdleTime)
@@ -124,7 +118,7 @@ func ping(db *sql.DB) error {
 	// 设置超时上下文
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	
+
 	return db.PingContext(ctx)
 }
 
@@ -134,7 +128,7 @@ func ping(db *sql.DB) error {
 func QueryContextWithTimeout(db *sql.DB, query string, timeout time.Duration, args ...interface{}) (*sql.Rows, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	
+
 	return db.QueryContext(ctx, query, args...)
 }
 
@@ -142,7 +136,7 @@ func QueryContextWithTimeout(db *sql.DB, query string, timeout time.Duration, ar
 func QueryRowContextWithTimeout(db *sql.DB, query string, timeout time.Duration, args ...interface{}) *sql.Row {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	
+
 	return db.QueryRowContext(ctx, query, args...)
 }
 
@@ -150,7 +144,7 @@ func QueryRowContextWithTimeout(db *sql.DB, query string, timeout time.Duration,
 func ExecContextWithTimeout(db *sql.DB, query string, timeout time.Duration, args ...interface{}) (sql.Result, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	
+
 	return db.ExecContext(ctx, query, args...)
 }
 
@@ -167,7 +161,7 @@ func BeginTx(db *sql.DB, ctx context.Context, opts *sql.TxOptions) (*Transaction
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	
+
 	return &Transaction{tx: tx}, nil
 }
 
@@ -209,13 +203,13 @@ func Close(db *sql.DB) error {
 	if db == nil {
 		return nil
 	}
-	
+
 	log.Println("Closing database connection...")
-	
+
 	if err := db.Close(); err != nil {
 		return fmt.Errorf("failed to close database: %w", err)
 	}
-	
+
 	log.Println("Database connection closed")
 	return nil
 }
@@ -226,7 +220,7 @@ func Close(db *sql.DB) error {
 func HealthCheck(db *sql.DB) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	
+
 	return db.PingContext(ctx)
 }
 
@@ -240,9 +234,9 @@ func GetStats(db *sql.DB) sql.DBStats {
 // LoadConfigFromEnv 从环境变量加载配置
 func LoadConfigFromEnv() *Config {
 	cfg := DefaultConfig()
-	
+
 	// 这里可以从环境变量读取
 	// 例如：cfg.Host = os.Getenv("DB_HOST")
-	
+
 	return cfg
 }

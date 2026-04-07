@@ -9,14 +9,14 @@ type ConstraintType string
 
 const (
 	// 时间约束
-	ConstraintTypeOperatingHours ConstraintType = "operating_hours"      // 营业时间
-	ConstraintTypeStayDuration   ConstraintType = "stay_duration"        // 停留时间
-	ConstraintTypeMealTime       ConstraintType = "meal_time"            // 用餐时间
+	ConstraintTypeOperatingHours ConstraintType = "operating_hours" // 营业时间
+	ConstraintTypeStayDuration   ConstraintType = "stay_duration"   // 停留时间
+	ConstraintTypeMealTime       ConstraintType = "meal_time"       // 用餐时间
 
 	// 空间约束
-	ConstraintTypeDistance ConstraintType = "distance"      // 距离限制
-	ConstraintTypeArea     ConstraintType = "area"          // 地区限制
-	ConstraintTypeLocation ConstraintType = "location"      // 位置约束
+	ConstraintTypeDistance ConstraintType = "distance" // 距离限制
+	ConstraintTypeArea     ConstraintType = "area"     // 地区限制
+	ConstraintTypeLocation ConstraintType = "location" // 位置约束
 
 	// 预算约束
 	ConstraintTypeTotalBudget    ConstraintType = "total_budget"    // 总预算
@@ -34,14 +34,14 @@ const (
 
 // Constraint 约束基础实体
 type Constraint struct {
-	ID          string        `json:"id"`
+	ID          string         `json:"id"`
 	Type        ConstraintType `json:"type"`
-	Name        string        `json:"name"`
-	Description string        `json:"description"`
-	Priority    int           `json:"priority"`     // 优先级：1-10，数字越大优先级越高
-	IsHard      bool          `json:"is_hard"`      // 是否为硬约束（必须满足）
-	CreatedAt   time.Time     `json:"created_at"`
-	UpdatedAt   time.Time     `json:"updated_at"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Priority    int            `json:"priority"` // 优先级：1-10，数字越大优先级越高
+	IsHard      bool           `json:"is_hard"`  // 是否为硬约束（必须满足）
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
 // TimeConstraint 时间约束
@@ -55,10 +55,10 @@ type TimeConstraint struct {
 // BudgetConstraint 预算约束
 type BudgetConstraint struct {
 	*Constraint
-	MaxBudget    float64 `json:"max_budget"`    // 最大预算
-	MinBudget    float64 `json:"min_budget"`    // 最小预算
-	Currency     string  `json:"currency"`      // 货币单位
-	Category     string  `json:"category"`      // 预算类别（住宿、餐饮、交通等）
+	MaxBudget float64 `json:"max_budget"` // 最大预算
+	MinBudget float64 `json:"min_budget"` // 最小预算
+	Currency  string  `json:"currency"`   // 货币单位
+	Category  string  `json:"category"`   // 预算类别（住宿、餐饮、交通等）
 }
 
 // DistanceConstraint 距离约束
@@ -115,4 +115,3 @@ func (cv *ConstraintValidator) Validate(target interface{}) bool {
 	}
 	return true
 }
-

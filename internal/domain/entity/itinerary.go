@@ -12,6 +12,7 @@ var (
 	ErrInvalidItineraryName = errors.New("itinerary name cannot be empty")
 	ErrInvalidDateRange     = errors.New("end date must be after start date")
 	ErrEmptyItinerary       = errors.New("itinerary must have at least one day")
+	ErrItineraryNotFound    = errors.New("itinerary not found")
 )
 
 // generateID 生成唯一ID
@@ -147,6 +148,10 @@ type DayStatistics struct {
 
 // NewItinerary 创建新行程
 func NewItinerary(userID, name string, startDate, endDate time.Time) *Itinerary {
+	dayCount := int(endDate.Sub(startDate).Hours()/24) + 1
+	if dayCount < 1 {
+		dayCount = 1
+	}
 	return &Itinerary{
 		ID:        generateID(),
 		UserID:    userID,
@@ -154,7 +159,7 @@ func NewItinerary(userID, name string, startDate, endDate time.Time) *Itinerary 
 		Status:    ItineraryStatusDraft,
 		StartDate: startDate,
 		EndDate:   endDate,
-		DayCount:  int(endDate.Sub(startDate).Hours() / 24),
+		DayCount:  dayCount,
 		Days:      make([]*ItineraryDay, 0),
 		Budget: &ItineraryBudget{
 			Currency:   "CNY",

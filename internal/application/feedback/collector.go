@@ -261,12 +261,12 @@ func aggregateGroup(order []string, byDedupe map[string]*RawFeedbackInput) []Fee
 }
 
 type aggSlot struct {
-	count     int
-	ratings   []float64
-	comments  []string
-	latest    time.Time
-	rep       *RawFeedbackInput
-	firstAt   time.Time
+	count    int
+	ratings  []float64
+	comments []string
+	latest   time.Time
+	rep      *RawFeedbackInput
+	firstAt  time.Time
 }
 
 func (s *aggSlot) add(r *RawFeedbackInput) {

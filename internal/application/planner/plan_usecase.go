@@ -6,43 +6,26 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
-	"internal/domain/entity"
-	"internal/domain/repository"
-	"time"
 	"sort"
+	"time"
+
+	"github.com/google/uuid"
+
+	"atlas-routex/internal/domain/entity"
+	"atlas-routex/internal/domain/repository"
 )
 
 // 业务语义错误，供handler映射HTTP状态或者错误码
 var (
-	ErrInvalidPlanInput   = errors.New("planner: invalid plan input")
-	ErrUserNotFound       = errors.New("planner: user not found")
-	ErrNoCandidatePOIs    = errors.New("planner: no candidate pois")
-	ErrBudgetInfeasible   = errors.New("planner: budget infeasible for given candidates")
-	ErrSolverTimeout      = errors.New("planner: solver deadline exceeded")
-	ErrEmptySolverResult  = errors.New("planner: solver returned empty schedule")
+	ErrInvalidPlanInput  = errors.New("planner: invalid plan input")
+	ErrUserNotFound      = errors.New("planner: user not found")
+	ErrNoCandidatePOIs   = errors.New("planner: no candidate pois")
+	ErrBudgetInfeasible  = errors.New("planner: budget infeasible for given candidates")
+	ErrSolverTimeout     = errors.New("planner: solver deadline exceeded")
+	ErrEmptySolverResult = errors.New("planner: solver returned empty schedule")
 )
 
-
-
-// PlanInput 规划命令，后续要迁移到dto.go与HTTP对齐
-type PlanInput struct {
-	UserID	 string
-	ItineraryName string
-	Description string
-	City string
-	StartDate time.Time
-	EndDate time.Time
-	TotalBudget float64
-	Currency string
-	Tags []string
-	Constraints []string
-
-	//单次拉去候选上限，0表示默认
-	MaxCandidatePOIs int
-}
-
-// SolverInput 是应用层和算法层之间的DTO对象，用于将领域是数据传递给求解器
+// SolverInput 是应用层和算法层之间的DTO对象，用于将领域数据传递给求解器。
 type SolverInput struct {
 	Candidates  []*entity.POI
 	StartDate   time.Time
@@ -176,8 +159,8 @@ func validatePlanInput(in *PlanInput) error {
 }
 
 func daysInclusive(start, end time.Time) int {
-	// 与 entity.NewItinerary 一致：按日历日差。
-	d := int(end.Sub(start).Hours() / 24)
+	// 按日历日计算，包含开始日与结束日。
+	d := int(end.Sub(start).Hours()/24) + 1
 	if d < 1 {
 		return 1
 	}
@@ -232,7 +215,9 @@ func buildItineraryFromSolver(in *PlanInput, out *SolverOutput, candidates []*en
 		byID[p.ID] = p
 	}
 
+	dayCount := daysInclusive(in.StartDate, in.EndDate)
 	it := entity.NewItinerary(in.UserID, in.ItineraryName, in.StartDate, in.EndDate)
+	it.DayCount = dayCount
 	it.Description = in.Description
 	it.Constraints = append([]entity.Constraint(nil), in.Constraints...)
 	if in.TotalBudget > 0 {
@@ -241,8 +226,6 @@ func buildItineraryFromSolver(in *PlanInput, out *SolverOutput, candidates []*en
 			it.Budget.Currency = in.Currency
 		}
 	}
-
-	dayCount := daysInclusive(in.StartDate, in.EndDate)
 	for d := 1; d <= dayCount; d++ {
 		date := in.StartDate.AddDate(0, 0, d-1)
 		it.AddDay(entity.NewItineraryDay(d, date))
@@ -290,6 +273,3 @@ func buildItineraryFromSolver(in *PlanInput, out *SolverOutput, candidates []*en
 	it.UpdateStatus(entity.ItineraryStatusPlanned)
 	return it
 }
-
-
-
